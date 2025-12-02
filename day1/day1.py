@@ -1,12 +1,6 @@
 
-import os
-
-
-# Get current directory of script
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
 # Read in data
-with open(os.path.join(current_dir, 'data.txt')) as f:
+with open('data.txt') as f:
     data = f.read().strip().split('\n')
 
 print(data)
