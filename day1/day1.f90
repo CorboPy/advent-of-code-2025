@@ -2,12 +2,10 @@ program day1
     implicit none
 
     ! Declare
-    integer :: start_point = 50
-    integer :: position
-    integer :: pointing_at_zero = 0
+    integer :: dial = 50
     character(len=3) :: instruction
     character(len=1) :: direction
-    integer :: magnitude
+    integer :: magnitude, zeros, clicks, rotation
     character(len=3) :: line
     character(len=3), allocatable :: data_(:)
     integer :: n, unit
@@ -45,8 +43,8 @@ program day1
     ! After 99, it wraps around to 0
     ! Data has a set of LXX, RXX instructions
     ! Find number of times the dial stops at 0
-
-    position = start_point
+    
+    zeros = 0
     do n = 1, size(data_)
         instruction = data_(n)
         direction = instruction(1:1)
@@ -56,29 +54,32 @@ program day1
 
         print *, "Instruction: ", instruction, ", Direction: ", direction, ", Magnitude: ", magnitude
 
-        ! Update position. position can't be negative or > 99
-        if (direction == 'R') then
-            position = position + magnitude
-            position = mod(position, 100) ! wrap around
-            if (position < 0) position = position + 100
-        else if (direction == 'L') then
-            position = position - magnitude
-            ! If go into negative, it will be 99 - something
-            position = mod(position, 100) ! wrap around
-            if (position < 0) position = position + 100 ! In Fortran, mod(-1,100) is -1 so we need to add 100 so it becomes 99
-        else
-            print *, "Unknown direction: ", direction
-            ! Raise error
-            stop 1
-        end if
+        clicks = magnitude / 100
+        rotation = mod(magnitude, 100)
 
-        ! Check if crossed zero
-        if (position == 0) then
-            pointing_at_zero = pointing_at_zero + 1
+        ! Count full rotations
+        zeros = zeros + clicks
+
+        if (direction == 'R') then
+            ! Rotate right 
+            if (dial + rotation >= 100) then
+                zeros = zeros + 1
+            end if
+            dial = mod(dial+rotation,100)
+        else if (direction == 'L') then
+            ! Rotate left 
+            if (dial /= 0 .and. dial - rotation <= 0) then
+                zeros = zeros + 1
+            end if
+            dial = mod(dial - rotation,100)
+            if (dial < 0) dial = dial + 100 ! Fortran mod can return negative
+        else
+            print *, "Invalid direction: ", direction
+            stop 1
         end if
     end do
 
-    print *, "Final Position: ", position
-    print *, "Number of times dial pointed at zero: ", pointing_at_zero
-
+    ! Results
+    print *, "Final Position: ", dial
+    print *, "Number of times dial pointed at zero: ", zeros
 end program day1
